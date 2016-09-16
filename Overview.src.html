@@ -1080,6 +1080,7 @@ interface <dfn>TextDecoder</dfn> {
   readonly attribute boolean <span title=dom-TextDecoder-fatal>fatal</span>;
   readonly attribute boolean <span title=dom-TextDecoder-ignoreBOM>ignoreBOM</span>;
   USVString <span title=dom-TextDecoder-decode>decode</span>(optional BufferSource <var>input</var>, optional <span>TextDecodeOptions</span> <var>options</var>);
+  static TransformStream <span title=dom-TextDecoder-stream>stream</span>(optional DOMString <var>label</var> = "utf-8", optional <span>TextDecoderOptions</span> <var>options</var>);
 };</pre>
 
 <p>A <code>TextDecoder</code> object has an associated <b>encoding</b>, <b>decoder</b>,
@@ -1163,6 +1164,14 @@ string += decoder.decode(); // end-of-stream</pre>
   <p>If the <b>error mode</b> is "<code>fatal</code>" and <b>encoding</b>'s <span>decoder</span>
   returns <span>error</span>, <span data-anolis-spec=webidl title=throw>throws</span> a
   <code>TypeError</code>.
+
+  <dt><code><var>stream</var> = <span title=dom-TextDecoder>TextDecoder</span>
+  . <span title=dom-TextDecoder-stream>stream</span>([<var>label</var> = "utf-8" [, <var>options</var>]])</code>
+  <dd>
+    <p>Returns a new <code>TransformStream</code> object that can be used to convert a stream of
+    bytes in the specified encoding to a stream of strings. <var>label</var> and <var>options</var>
+    are handled as with the TextDecoder constructor.
+    <p class="note no-backref">This is a static class method, not an object method.
 </dl>
 
 <p>The
@@ -1252,6 +1261,34 @@ method, when invoked, must run these steps:
   </ol>
 </ol>
 
+<p>The
+<dfn title=dom-TextDecoder-stream><code>stream(<var>label</var>, <var>options</var>)</code></dfn>
+method, when invoked, must run these steps:
+
+<ol>
+ <li><p>Let <var>encoding</var> be the result of
+ <span title=concept-encoding-get>getting an encoding</span> from
+ <var>label</var>.
+
+ <li><p>If <var>encoding</var> is failure or <span>replacement</span>,
+ <span data-anolis-spec=webidl>throw</span> a <code>RangeError</code>.
+
+ <li><p>Let <var>transformer</var> be a new <code>TextDecoderTransformer</code> object.
+
+ <li><p>Set <var>transformer</var>'s <b>encoding</b> to <var>encoding</var>.
+
+ <li><p>If <var>options</var>'s <code title>fatal</code> member is
+ true, set <var>transformer</var>'s <b>error mode</b> to "<code>fatal</code>".
+
+ <li><p>If <var>options</var>'s <code title>ignoreBOM</code> member is
+ true, set <var>transformer</var>'s <b>ignore BOM flag</b>.
+
+ <li><p>Let <var>t</var> be a new TransformStream object with <b>transformer</b> set to
+ <var>transformer</var>.
+
+ <li><p>Return <var>t</var>.
+</ol>
+
 
 <h3>Interface <code title>TextEncoder</code></h3>
 
@@ -1261,6 +1298,7 @@ that is not the label argument it had previously. That would break content. -->,
 interface <dfn>TextEncoder</dfn> {
   readonly attribute DOMString <span title=dom-TextEncoder-encoding>encoding</span>;
   [NewObject] Uint8Array <span title=dom-TextEncoder-encode>encode</span>(optional USVString <var>input</var> = "");
+  static TransformStream <span title=dom-TextEncoder-stream>stream</span>();
 };</pre>
 
 <p>A <code>TextEncoder</code> object has an associated <b>encoder</b>.
@@ -1280,6 +1318,11 @@ it only supports <span>UTF-8</span>. It also offers no <code>stream</code> optio
 
  <dt><code><var>encoder</var> . <span title=dom-TextEncoder-encode>encode</span>([<var>input</var> = ""])</code>
  <dd><p>Returns the result of running <span>UTF-8</span>'s <span>encoder</span>.
+
+ <dt><code><span title=dom-TextEncoder>TextEncoder</span> . <span title=dom-TextEncoder-stream>stream</span>()</code>
+ <dd><p>Returns a new <code>TransformStream</code> object that can be used to convert a stream of
+     strings to a stream of bytes in the <span>UTF-8</span> encoding.
+     <p class="note no-backref">This is a static class method, not an object method.
 </dl>
 
 <p>The <dfn title=dom-TextEncoder><code>TextEncoder()</code></dfn> constructor, when invoked, must
@@ -1327,7 +1370,234 @@ method, when invoked, must run these steps:
   </ol>
 </ol>
 
+<p>The
+<dfn title=dom-TextDecoder-stream><code>stream()</code></dfn> method, when invoked, must run these
+steps:
 
+<ol>
+ <li><p>Let <var>transformer</var> be a new <code>TextEncoderTransformer</code> object.
+
+ <li><p>Set <var>transformer</var>'s <b>encoding</b> to <span>UTF-8</span>'s <span>encoder</span>.
+
+ <li><p>Let <var>t</var> be a new TransformStream object with <b>transformer</b> set to
+ <var>transformer</var>.
+
+ <li><p>Return <var>t</var>.
+</ol>
+
+<h3>Interface <code title>TextDecoderTransformer</code></h3>
+
+<pre class=idl>callback EnqueueStringCallback = void (DOMString chunk);
+callback CloseCallback = void (void);
+callback ErrorCallback = void (optional any);
+callback DoneCallback = void (void);
+
+[<span title=dom-TextDecoderTransformer>Constructor</span>(optional DOMString <var>label</var> = "utf-8", optional <span>TextDecoderOptions</span> <var>options</var>),
+ Exposed=(Window,Worker)]
+interface <dfn>TextDecoderTransformer</dfn> {
+  void transform(BufferSource <var>chunk</var>, DoneCallback <var>done</var>, EnqueueStringCallback <var>enqueue</var>, CloseCallback <var>closeReadable</var>, ErrorCallback <var>error</var>);
+  void flush(EnqueueStringCallback <var>enqueue</var>, CloseCallback <var>closeReadable</var>, ErrorCallback <var>error</var>);
+};</pre>
+
+<p class=note>TextDecoderTransformer is an implementation detail and not intended to be instantiated
+directly.
+
+<p>A <code>TextDecoderTransformer</code> object has an associated <b>encoding</b>, <b>decoder</b>,
+<b>stream</b>, <b>ignore BOM flag</b> (initially unset),
+<b>BOM seen flag</b> (initially unset), and
+<b>error mode</b> (initially "<code title>replacement</code>").
+
+<p>A <code>TextDecoderTransformer</code> object also has an associated
+<dfn title=concept-TD-serialize>serialize stream</dfn> algorithm, that given a
+<span title=concept-stream>stream</span> <var>stream</var>, runs these steps:
+
+<!-- TODO(ricea): Merge this with the identical algorithm used by TextDecoder. -->
+
+<ol>
+ <li><p>Let <var>output</var> be the empty <span>string</span>.
+
+ <li>
+  <p>While true:
+
+  <ol>
+   <li><p>Let <var>token</var> be the result of
+   <span title=concept-stream-read>reading</span> from <var>stream</var>.
+
+   <li>
+    <p>If <b>encoding</b> is <span>UTF-8</span>, <span>UTF-16BE</span>, or <span>UTF-16LE</span>,
+    and <b>ignore BOM flag</b> and <b>BOM seen flag</b> are unset, run these subsubsteps:
+
+    <ol>
+     <li><p>If <var>token</var> is U+FEFF, set <b>BOM seen flag</b>.
+
+     <li><p>Otherwise, if <var>token</var> is not <span>end-of-stream</span>, set
+     <b>BOM seen flag</b> and append <var>token</var> to <var>output</var>.
+
+     <li><p>Otherwise, return <var>output</var>.
+    </ol>
+
+   <li><p>Otherwise, if <var>token</var> is not <span>end-of-stream</span>, append
+   <var>token</var> to <var>output</var>.
+
+   <li><p>Otherwise, return <var>output</var>.
+  </ol>
+</ol>
+
+<p class=note>This algorithm is intentionally different with respect to BOM handling from
+the <span>decode</span> algorithm used by the rest of the platform to give API users more
+control.
+
+<hr>
+<p>The <dfn title=dom-TextDecoderTransformer><code>TextDecoderTransformer()</code></dfn>
+constructor, when invoked, must run these steps:
+<ol>
+ <li><p>Let <var>encoding</var> be the result of
+ <span title=concept-encoding-get>getting an encoding</span> from
+ <var>label</var>.
+
+ <li><p>If <var>encoding</var> is failure or <span>replacement</span>,
+ <span data-anolis-spec=webidl>throw</span> a <code>RangeError</code>.
+
+ <li><p>Let <var>transformer</var> be a new <code>TextDecoderTransformer</code> object.
+
+ <li><p>Set <var>transformer</var>'s <b>encoding</b> to <var>encoding</var>.
+
+ <li><p>If <var>options</var>'s <code title>fatal</code> member is
+ true, set <var>transformer</var>'s <b>error mode</b> to "<code>fatal</code>".
+
+ <li><p>If <var>options</var>'s <code title>ignoreBOM</code> member is
+ true, set <var>transformer</var>'s <b>ignore BOM flag</b>.
+
+ <li><p>Set <b>decoder</b> to a new <b>encoding</b>'s decoder</span>
+
+ <li><p>Set <b>stream</b> to a new <span title=concept-stream>stream</span>
+
+ <li><p>Return <var>transformer</var>.
+</ol>
+
+<p>The
+<dfn title=dom-TextDecoderTransformer-decode><code>transform(<var>chunk</var>, <var>done</var>, <var>enqueue</var>, <var>closeReadable</var>, <var>error</var>)</code></dfn>
+method, when invoked, must run these steps:
+
+<ol>
+ <li><p><span title=concept-stream-push>Push</span> a
+ <span data-anolis-spec=webidl title="get a copy of the bytes held by the buffer source">copy of</span>
+ <var>chunk</var> to <b>stream</b>.
+
+ <li><p>Let <var>output</var> be a new <span title=concept-stream>stream</span>.
+
+ <li>
+  <p>While true:
+
+  <ol>
+   <li><p>Let <var>token</var> be the result of
+   <span title=concept-stream-read>reading</span> from <b>stream</b>.
+
+   <li>
+    <p>If <var>token</var> is <span>end-of-stream</span>,
+    <ol>
+     <li><p>Call <var>enqueue</var>, passing
+     <var>output</var>, <span title=concept-TD-serialize>serialized</span>.
+     <li><p>Call <var>done</var>.
+     <li><p>Return.
+    </ol>
+
+   <li>
+    <p>Otherwise, run these subsubsteps:
+
+    <ol>
+     <li><p>Let <var>result</var> be the result of
+     <span title=concept-encoding-process>processing</span> <var>token</var> for
+     <b>decoder</b>, <b>stream</b>, <var>output</var>, and <b>error mode</b>.
+
+     <li><p>If <var>result</var> is <span>error</span>,
+     <span data-anolis-spec=webidl title=throw>throw</span> a <code>TypeError</code>.
+
+     <li><p>Otherwise, do nothing.
+    </ol>
+  </ol>
+</ol>
+
+<p>The
+<dfn title=dom-TextDecoderTransformer-flush><code>flush(<var>enqueue</var>, <var>closeReadable</var>, <var>error</var>)</code></dfn>
+method, when invoked, must run these steps:
+
+<ol>
+  <li><p>Let <var>output</var> be a new <span title=concept-stream>stream</span>.
+  <li><p>Let <var>result</var> be the result of
+  <span title=concept-encoding-process>processing</span> <span>end-of-stream</span> for
+  <b>decoder</b>, <b>stream</b>, <var>output</var>, and <b>error mode</b>.
+
+  <li><p>If <var>result</var> is <span>finished</span>, <ol>
+    <li><p>Call <var>enqueue</var>, passing
+    <var>output</var>, <span title=concept-TD-serialize>serialized</span>.
+    <li><p>Return.</ol>
+
+  <li><p>Otherwise,
+  <span data-anolis-spec=webidl title=throw>throw</span> a <code>TypeError</code>.
+</ol>
+
+<h3>Interface <code title>TextEncoderTransformer</code></h3>
+
+<!-- TODO(ricea): This algorithm cannot deal with having a surrogate pair split between two
+chunks. This is consistent with TextEncoder.encode() but arguably is a worse limitation in the
+streaming case. -->
+
+<pre class=idl>callback EnqueueArrayCallback = void (Uint8Array chunk);
+
+[<span title=dom-TextEncoderTransformer>Constructor</span>,
+ Exposed=(Window,Worker)]
+interface <dfn>TextEncoderTransformer</dfn> {
+  void transform(DOMString <var>chunk</var>, DoneCallback <var>done</var>, EnqueueStringCallback <var>enqueue</var>, CloseCallback <var>closeReadable</var>, ErrorCallback <var>error</var>);
+};</pre>
+
+<p class=note>TextEncoderTransformer is an implementation detail and not intended to be instantiated
+directly.
+
+<p>A <code>TextEncoderTransformer</code> object has an associated <b>encoder</b>.
+
+<hr>
+<p>The <dfn title=dom-TextEncoderTransformer><code>TextEncoderTransformer()</code></dfn>
+constructor, when invoked, must run these steps:
+<ol>
+ <li><p>Let <var>transformer</var> be a new <code>TextEncoderTransformer</code> object.
+
+ <li><p>Set <var>transformer</var>'s <b>encoding</b> to UTF-8's encoder.
+
+ <li><p>Return <var>transformer</var>.
+</ol>
+
+<p>The
+<dfn title=dom-TextEncoderTransformer-decode><code>transform(<var>chunk</var>, <var>done</var>, <var>enqueue</var>, <var>closeReadable</var>, <var>error</var>)</code></dfn>
+method, when invoked, must run these steps:
+
+<ol>
+ <li><p>Convert <var>chunk</var> to a <span title=concept-stream>stream</span>.
+
+ <li><p>Let <var>output</var> be a new <span title=concept-stream>stream</span>.
+
+ <li><p>While true, run these substeps:
+ <ol>
+  <li><p>Let <var>token</var> be the result of
+  <span title=concept-stream-read>reading</span> from <var>chunk</var>.
+
+  <li><p>Let <var>result</var> be the result of
+  <span title=concept-encoding-process>processing</span> <var>token</var> for
+  <b>encoder</b>, <var>input</var>, <var>output</var>.
+
+  <li><p>If <var>result</var> is finished, run these substeps:
+   <ol>
+    <li><p>Convert <var>output</var> into a byte sequence.
+
+    <li><p>Call <var>enqueue</var> with a <code title>Uint8Array</code> object wrapping
+    an <code title>ArrayBuffer</code> containing <var>output</var>.
+
+    <li><p>Call <var>done</var>.
+
+    <li><p>Return.
+   </ol>
+  </ol>
+</ol>
 
 <h2>The encoding</h2>
 
