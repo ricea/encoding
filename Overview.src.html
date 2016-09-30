@@ -1291,11 +1291,12 @@ method, when invoked, must run these steps:
 
  <li><p>Set <var>transformer</var>["transform"] to a function which
  takes <var>chunk</var>, <var>done</var>, <var>enqueue</var>, <var>closeReadable</var>, 
- <var>error</var> arguments and runs the <span>decode and enqueue a chunk</span> algorithm.
+ <var>error</var> arguments and runs the <span title=concept-TD-decode-and-enqueue>decode and
+ enqueue a chunk</span> algorithm.
 
  <li><p>Set <var>transform</var>["flush"] to a function which
  takes <var>enqueue</var>, <var>closeReadable</var>, <var>error</var> arguments and runs
- the <span>flush and enqueue</span> algorithm.
+ the <span title=concept-TD-flush-and-enqueue>flush and enqueue</span> algorithm.
 
  <li><p>Let <var>t</var> be the result of calling the initial value of TransformStream as a
  constructor with <var>transformer</var>.
