@@ -1080,7 +1080,7 @@ interface <dfn>TextDecoder</dfn> {
   readonly attribute boolean <span title=dom-TextDecoder-fatal>fatal</span>;
   readonly attribute boolean <span title=dom-TextDecoder-ignoreBOM>ignoreBOM</span>;
   USVString <span title=dom-TextDecoder-decode>decode</span>(optional BufferSource <var>input</var>, optional <span>TextDecodeOptions</span> <var>options</var>);
-  static TransformStream <span title=dom-TextDecoder-stream>stream</span>(optional DOMString <var>label</var> = "utf-8", optional <span>TextDecoderOptions</span> <var>options</var>);
+  static <span data-anolis-spec=streams>TransformStream</span> <span title=dom-TextDecoder-stream>stream</span>(optional DOMString <var>label</var> = "utf-8", optional <span>TextDecoderOptions</span> <var>options</var>);
 };</pre>
 
 <p>A <code>TextDecoder</code> object has an associated <b>encoding</b>, <b>decoder</b>,
@@ -1168,7 +1168,7 @@ string += decoder.decode(); // end-of-stream</pre>
   <dt><code><var>stream</var> = <span title=dom-TextDecoder>TextDecoder</span>
   . <span title=dom-TextDecoder-stream>stream</span>([<var>label</var> = "utf-8" [, <var>options</var>]])</code>
   <dd>
-    <p>Returns a new <code>TransformStream</code> object that can be used to convert a stream of
+    <p>Returns a new <code data-anolis-spec=streams>TransformStream</code> object that can be used to convert a stream of
     bytes in the specified encoding to a stream of strings. <var>label</var> and <var>options</var>
     are handled as with the <code>TextDecoder</code> constructor.
     <p class="note no-backref">This is a static class method, not an object method.
@@ -1271,7 +1271,7 @@ method, when invoked, must run these steps:
  <var>label</var>.
 
  <li><p>If <var>encoding</var> is failure or <span>replacement</span>,
- <span data-anolis-spec=webidl>throw</span> a <code>RangeError</code>.
+ <span data-anolis-spec=webidl>throw</span> a <code data-anolis-spec=ecmascript>RangeError</code>.
 
  <li><p>Let <var>transformer</var> be a new object with an
  associated <b>decoder</b>, <b>stream</b>, <b>ignore BOM flag</b> (initially unset), <b>BOM seen
@@ -1298,8 +1298,8 @@ method, when invoked, must run these steps:
  takes <var>enqueue</var>, <var>closeReadable</var>, <var>error</var> arguments and runs
  the <span title=concept-TD-flush-and-enqueue>flush and enqueue</span> algorithm.
 
- <li><p>Let <var>t</var> be the result of calling the initial value of TransformStream as a
- constructor with <var>transformer</var>.
+ <li><p>Let <var>t</var> be the result of calling the initial value of <code data-anolis-spec=streams>TransformStream</code>
+ as a constructor with <var>transformer</var>.
 
  <li><p>Return <var>t</var>.
 </ol>
@@ -1339,7 +1339,8 @@ transforms a chunk of data to a string, runs these steps:
      <b>decoder</b>, <b>stream</b>, <var>output</var>, and <b>error mode</b>.
 
      <li><p>If <var>result</var> is <span>error</span>,
-     <span data-anolis-spec=webidl title=throw>throw</span> a <code>TypeError</code>.
+     <span data-anolis-spec=webidl title=throw>throw</span>
+     a <code data-anolis-spec=ecmascript>TypeError</code>.
 
      <li><p>Otherwise, do nothing.
     </ol>
@@ -1347,7 +1348,7 @@ transforms a chunk of data to a string, runs these steps:
 </ol>
 
 <p>The <dfn title=concept-TD-flush-and-enqueue>flush and enqueue</dfn> algorithm, which handles the
-end of data from the input ReadableStream, runs these steps:
+end of data from the input <code data-anolis-spec=streams>ReadableStream</code>, runs these steps:
 
 <ol>
   <li><p>Let <var>output</var> be a new <span title=concept-stream>stream</span>.
@@ -1363,7 +1364,7 @@ end of data from the input ReadableStream, runs these steps:
   </ol>
 
   <li><p>Otherwise,
-  <span data-anolis-spec=webidl title=throw>throw</span> a <code>TypeError</code>.
+  <span data-anolis-spec=webidl title=throw>throw</span> a <code data-anolis-spec=ecmascript>TypeError</code>.
 </ol>
 
 <h3>Interface <code title>TextEncoder</code></h3>
@@ -1374,7 +1375,7 @@ that is not the label argument it had previously. That would break content. -->,
 interface <dfn>TextEncoder</dfn> {
   readonly attribute DOMString <span title=dom-TextEncoder-encoding>encoding</span>;
   [NewObject] Uint8Array <span title=dom-TextEncoder-encode>encode</span>(optional USVString <var>input</var> = "");
-  static TransformStream <span title=dom-TextEncoder-stream>stream</span>();
+  static <span data-anolis-spec=streams>TransformStream</span> <span title=dom-TextEncoder-stream>stream</span>();
 };</pre>
 
 <p>A <code>TextEncoder</code> object has an associated <b>encoder</b>.
@@ -1396,7 +1397,7 @@ it only supports <span>UTF-8</span>. It also offers no <code>stream</code> optio
  <dd><p>Returns the result of running <span>UTF-8</span>'s <span>encoder</span>.
 
  <dt><code><span title=dom-TextEncoder>TextEncoder</span> . <span title=dom-TextEncoder-stream>stream</span>()</code>
- <dd><p>Returns a new <code>TransformStream</code> object that can be used to convert a stream of
+ <dd><p>Returns a new <code data-anolis-spec=streams>TransformStream</code> object that can be used to convert a stream of
      strings to a stream of bytes in the <span>UTF-8</span> encoding.
      <p class="note no-backref">This is a static class method, not an object method.
 </dl>
@@ -1461,7 +1462,8 @@ takes <var>chunk</var>, <var>done</var>, <var>enqueue</var>, <var>closeReadable<
 
   <li><p>Let <var>output</var> be a new <span title=concept-stream>stream</span>.
 
-  <li><p>Use UTF-8's encoder as the <b>encoder</b> for the following steps.
+  <li><p>Use <span>UTF-8</span>'s <span>encoder</span> as the <b>encoder</b> for the following
+  steps.
 
   <li><p>While true, run these substeps:
 
@@ -1482,8 +1484,8 @@ streaming case. -->
     <li><p>Convert <var>output</var> into a byte sequence.
 
     <li><p>Call <var>enqueue</var> as a function with
-    a <code title>Uint8Array</code> object wrapping an
-    <code title>ArrayBuffer</code> containing <var>output</var>.
+    a <code data-anolis-spec=ecmascript>Uint8Array</code> object wrapping an
+    <code data-anolis-spec=ecmascript>ArrayBuffer</code> containing <var>output</var>.
 
     <li><p>Call <var>done</var> as a function.
 
@@ -1492,7 +1494,8 @@ streaming case. -->
   </ol>
  </ol>
 
- <li><p>Let <var>t</var> be the result of calling the initial value of TransformStream as a constructor with <var>transformer</var>.
+ <li><p>Let <var>t</var> be the result of calling the initial value of <code data-anolis-spec=streams>TransformStream</code>
+ as a constructor with <var>transformer</var>.
 
  <li><p>Return <var>t</var>.
 </ol>
