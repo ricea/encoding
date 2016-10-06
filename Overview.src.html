@@ -1273,33 +1273,41 @@ method, when invoked, must run these steps:
  <li><p>If <var>encoding</var> is failure or <span>replacement</span>,
  <span data-anolis-spec=webidl>throw</span> a <code data-anolis-spec=ecmascript>RangeError</code>.
 
- <li><p>Let <var>transformer</var> be a new object with an
- associated <b>decoder</b>, <b>stream</b>, <b>ignore BOM flag</b> (initially unset), <b>BOM seen
- flag</b> (initially unset), and <b>error mode</b> (initially "<code title>replacement</code>").
+ <li><p>Let <var>transformer</var> be a new object with an associated
+ <dfn title=slot-TD-transformer-decoder><b>decoder</b></dfn>,
+ <dfn title=slot-TD-transformer-stream><b>stream</b></dfn>,
+ <dfn title=slot-TD-transformer-ignore-BOM-flag><b>ignore BOM flag</b></dfn> (initially unset),
+ <dfn title=slot-TD-transformer-BOM-seen-flag>BOM seen flag</dfn > (initially unset), and
+ <dfn title=slot-TD-transformer-error-mode><b>error mode</b></dfn> (initially
+ "<code title>replacement</code>").
 
- <li><p>Set <var>transformer</var>'s <b>encoding</b> to <var>encoding</var>.
+ <li><p>If <var>options</var>'s <code title>fatal</code> member is true,
+ set <var>transformer</var>'s <span title=slot-TD-transformer-error-mode><b>error mode</b></span> to
+ "<code>fatal</code>".
 
- <li><p>If <var>options</var>'s <code title>fatal</code> member is
- true, set <var>transformer</var>'s <b>error mode</b> to "<code>fatal</code>".
+ <li><p>If <var>options</var>'s <code title>ignoreBOM</code> member is true,
+ set <var>transformer</var>'s <span title=slot-TD-transformer-ignore-BOM-flag><b>ignore BOM
+ flag</b></span>.
 
- <li><p>If <var>options</var>'s <code title>ignoreBOM</code> member is
- true, set <var>transformer</var>'s <b>ignore BOM flag</b>.
+ <li><p>Set <span title=slot-TD-transformer-decoder><b>decoder</b></span> to a
+ new <var>encoding</var>'s <span>decoder</span>.
 
- <li><p>Set <b>decoder</b> to a new <b>encoding</b>'s decoder</span>.
-
- <li><p>Set <b>stream</b> to a new <span title=concept-stream>stream</span>
+ <li><p>Set <span title=slot-TD-transformer-stream><b>stream</b></span> to a
+ new <span title=concept-stream>stream</span>
 
  <li><p>Set <var>transformer</var>["transform"] to a function which
- takes <var>chunk</var>, <var>done</var>, <var>enqueue</var>, <var>closeReadable</var>, 
+ takes <var>chunk</var>, <var>done</var>, <var>enqueue</var>, <var>closeReadable</var>,
  <var>error</var> arguments and runs the <span title=concept-TD-decode-and-enqueue>decode and
- enqueue a chunk</span> algorithm.
+ enqueue a chunk</span> algorithm on the <var>transformer</var> object.
 
  <li><p>Set <var>transform</var>["flush"] to a function which
  takes <var>enqueue</var>, <var>closeReadable</var>, <var>error</var> arguments and runs
- the <span title=concept-TD-flush-and-enqueue>flush and enqueue</span> algorithm.
+ the <span title=concept-TD-flush-and-enqueue>flush and enqueue</span> algorithm on
+ the <var>transformer</var> object.
 
- <li><p>Let <var>t</var> be the result of calling the initial value of <code data-anolis-spec=streams>TransformStream</code>
- as a constructor with <var>transformer</var>.
+ <li><p>Let <var>t</var> be the result of calling the initial value of
+ <code data-anolis-spec=streams>TransformStream</code> as a constructor
+ with <var>transformer</var>.
 
  <li><p>Return <var>t</var>.
 </ol>
@@ -1309,8 +1317,9 @@ transforms a chunk of data to a string, runs these steps:
 
 <ol>
  <li><p><span title=concept-stream-push>Push</span> a
- <span data-anolis-spec=webidl title="get a copy of the bytes held by the buffer source">copy of</span>
- <var>chunk</var> to <b>stream</b>.
+ <span data-anolis-spec=webidl title="get a copy of the bytes held by the buffer source">copy
+ of</span> <var>chunk</var> to <var>transformer</var>'s
+ <span title=slot-TD-transformer-stream><b>stream</b></span>.
 
  <li><p>Let <var>output</var> be a new <span title=concept-stream>stream</span>.
 
@@ -1319,7 +1328,8 @@ transforms a chunk of data to a string, runs these steps:
 
   <ol>
    <li><p>Let <var>token</var> be the result of
-   <span title=concept-stream-read>reading</span> from <b>stream</b>.
+   <span title=concept-stream-read>reading</span>
+   from <var>transformer</var>'s <span title=slot-TD-transformer-stream><b>stream</b></span>.
 
    <li>
     <p>If <var>token</var> is <span>end-of-stream</span>,
@@ -1336,7 +1346,10 @@ transforms a chunk of data to a string, runs these steps:
     <ol>
      <li><p>Let <var>result</var> be the result of
      <span title=concept-encoding-process>processing</span> <var>token</var> for
-     <b>decoder</b>, <b>stream</b>, <var>output</var>, and <b>error mode</b>.
+     <var>transformer</var>'s <span title=slot-TD-transformer-decoder><b>decoder</b></span>
+     and <span title=slot-TD-transformer-stream><b>stream</b></span>, <var>output</var>,
+     and <var>transformer</var>'s <span title=slot-TD-transformer-error-mode><b>error
+     mode</b></span>.
 
      <li><p>If <var>result</var> is <span>error</span>,
      <span data-anolis-spec=webidl title=throw>throw</span>
@@ -1352,11 +1365,14 @@ end of data from the input <code data-anolis-spec=streams>ReadableStream</code>,
 
 <ol>
   <li><p>Let <var>output</var> be a new <span title=concept-stream>stream</span>.
+
   <li><p>Let <var>result</var> be the result of
   <span title=concept-encoding-process>processing</span> <span>end-of-stream</span> for
-  <b>decoder</b>, <b>stream</b>, <var>output</var>, and <b>error mode</b>.
+  <var>transformer</var>'s <span title=slot-TD-transformer-decoder><b>decoder</b></span>
+  and <span title=slot-TD-transformer-stream><b>stream</b></span>, <var>output</var>,
+  and <span title=slot-TD-transformer-error-mode><b>error mode</b></span>.
 
-  <li><p>If <var>result</var> is <span>finished</span>, 
+  <li><p>If <var>result</var> is <span>finished</span>,
   <ol>
    <li><p>Call <var>enqueue</var>, passing
    <var>output</var>, <span title=concept-TD-serialize>serialized</span>.
@@ -1364,7 +1380,8 @@ end of data from the input <code data-anolis-spec=streams>ReadableStream</code>,
   </ol>
 
   <li><p>Otherwise,
-  <span data-anolis-spec=webidl title=throw>throw</span> a <code data-anolis-spec=ecmascript>TypeError</code>.
+  <span data-anolis-spec=webidl title=throw>throw</span>
+  a <code data-anolis-spec=ecmascript>TypeError</code>.
 </ol>
 
 <h3>Interface <code title>TextEncoder</code></h3>
@@ -1462,8 +1479,7 @@ takes <var>chunk</var>, <var>done</var>, <var>enqueue</var>, <var>closeReadable<
 
   <li><p>Let <var>output</var> be a new <span title=concept-stream>stream</span>.
 
-  <li><p>Use <span>UTF-8</span>'s <span>encoder</span> as the <b>encoder</b> for the following
-  steps.
+  <li><p>Let <var>encoder</var> be <span>UTF-8</span>'s <span>encoder</span>.
 
   <li><p>While true, run these substeps:
 
@@ -1477,7 +1493,7 @@ streaming case. -->
 
    <li><p>Let <var>result</var> be the result of
    <span title=concept-encoding-process>processing</span> <var>token</var> for
-   <b>encoder</b>, <var>input</var>, <var>output</var>.
+   <var>encoder</var>, <var>input</var>, <var>output</var>.
 
    <li><p>If <var>result</var> is finished, run these substeps:
    <ol>
