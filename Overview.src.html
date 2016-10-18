@@ -1296,12 +1296,12 @@ method, when invoked, must run these steps:
  new <span title=concept-stream>stream</span>
 
  <li><p>Set <var>transformer</var>["transform"] to a function which
- takes <var>chunk</var>, <var>done</var>, <var>enqueue</var>, <var>closeReadable</var>,
- <var>error</var> arguments and runs the <span title=concept-TD-decode-and-enqueue>decode and
+ takes <var>chunk</var>, <var>controller</var> arguments and runs the
+ <span title=concept-TD-decode-and-enqueue>decode and
  enqueue a chunk</span> algorithm on the <var>transformer</var> object.
 
  <li><p>Set <var>transform</var>["flush"] to a function which
- takes <var>enqueue</var>, <var>closeReadable</var>, <var>error</var> arguments and runs
+ takes a <var>controller</var> argument and runs
  the <span title=concept-TD-flush-and-enqueue>flush and enqueue</span> algorithm on
  the <var>transformer</var> object.
 
@@ -1334,9 +1334,10 @@ transforms a chunk of data to a string, runs these steps:
    <li>
     <p>If <var>token</var> is <span>end-of-stream</span>,
     <ol>
-     <li><p>Call <var>enqueue</var> as a function, passing
-     <var>output</var>, <span title=concept-TD-serialize>serialized</span>.
-     <li><p>Call <var>done</var> as a function.
+     <li><p><span data-anolis-spec=ecmascript>Invoke</span> the <var>enqueue</var> method of
+     the <var>controller</var> object,
+     passing <var>output</var>, <span title=concept-TD-serialize>serialized</span>, as the sole
+     argument.
      <li><p>Return.
     </ol>
 
@@ -1353,7 +1354,7 @@ transforms a chunk of data to a string, runs these steps:
 
      <li><p>If <var>result</var> is <span>error</span>,
      <span data-anolis-spec=webidl title=throw>throw</span>
-     a <code data-anolis-spec=ecmascript>TypeError</code>.
+     a <code data-anolis-spec=ecmascript>TypeError</code> exception.
 
      <li><p>Otherwise, do nothing.
     </ol>
@@ -1374,8 +1375,10 @@ end of data from the input <code data-anolis-spec=streams>ReadableStream</code>,
 
   <li><p>If <var>result</var> is <span>finished</span>,
   <ol>
-   <li><p>Call <var>enqueue</var>, passing
-   <var>output</var>, <span title=concept-TD-serialize>serialized</span>.
+    <li><p><span data-anolis-spec=ecmascript>Invoke</span> the <var>enqueue</var> method of
+    the <var>controller</var> object,
+    passing <var>output</var>, <span title=concept-TD-serialize>serialized</span>, as the sole
+    argument.
    <li><p>Return.
   </ol>
 
@@ -1472,7 +1475,7 @@ steps:
  <li><p>Let <var>transformer</var> be a new object.
 
  <li><p>Set <var>tranformer</var>["transform"] to a function which
-takes <var>chunk</var>, <var>done</var>, <var>enqueue</var>, <var>closeReadable</var>, <var>error</var> arguments and performs the following steps:
+ takes <var>chunk</var>, <var>controller</var> arguments and performs the following steps:
 
  <ol>
   <li><p>Convert <var>chunk</var> to a <span title=concept-stream>stream</span>.
@@ -1499,11 +1502,10 @@ streaming case. -->
    <ol>
     <li><p>Convert <var>output</var> into a byte sequence.
 
-    <li><p>Call <var>enqueue</var> as a function with
-    a <code data-anolis-spec=ecmascript>Uint8Array</code> object wrapping an
-    <code data-anolis-spec=ecmascript>ArrayBuffer</code> containing <var>output</var>.
-
-    <li><p>Call <var>done</var> as a function.
+    <li><p><span data-anolis-spec=ecmascript>Invoke</span> the <var>enqueue</var> method of
+    the <var>controller</var> object, passing a <code data-anolis-spec=ecmascript>Uint8Array</code>
+    object wrapping an <code data-anolis-spec=ecmascript>ArrayBuffer</code>
+    containing <var>output</var> as the sole argument.
 
     <li><p>Return.
    </ol>
